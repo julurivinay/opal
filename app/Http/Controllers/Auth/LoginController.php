@@ -3,7 +3,10 @@
 namespace App\Http\Controllers\Auth;
 
 use App\Http\Controllers\Controller;
+use App\User;
 use Illuminate\Foundation\Auth\AuthenticatesUsers;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 
 class LoginController extends Controller
 {
@@ -35,5 +38,32 @@ class LoginController extends Controller
     public function __construct()
     {
         $this->middleware('guest')->except('logout');
+    }
+
+    public function getLogin(Request $request)
+    {
+        return view('auth.login');
+    }
+
+    public function postLogin(Request $request)
+    {
+        // Get all headers.
+        $headers = $request->headers->all();
+
+        // Check sso_uid header.
+        if($headers['host']) {
+            $user = User::where('sso', $headers['host'])->where('admin', 1)->first();
+
+            if($user) {
+
+                // Login the user
+                Auth::login($user);
+
+                return redirect('admin');
+            }
+        }
+
+        // Return redirect to login page.
+        return redirect('login');
     }
 }
